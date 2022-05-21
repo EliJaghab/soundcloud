@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
-Thu May 19 20:23:41 EDT 2022:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0180-ded9-3f60-000015ad4500 
-on database directory /Users/eli/github/soundcloud/metastore_db with class loader org.apache.spark.sql.hive.client.IsolatedClientLoader$$anon$1@49462cfb 
+Fri May 20 19:10:27 EDT 2022:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-0180-e3bc-8ff1-0000168d8640 
+on database directory /Users/eli/github/soundcloud/metastore_db with class loader org.apache.spark.sql.hive.client.IsolatedClientLoader$$anon$1@8d630b7 
 Loaded from file:/Users/eli/Library/Python/3.8/lib/python/site-packages/pyspark/jars/derby-10.14.2.0.jar
 java.vendor=Oracle Corporation
 java.runtime.version=1.8.0_333-b02
