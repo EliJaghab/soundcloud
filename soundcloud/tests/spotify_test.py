@@ -41,3 +41,9 @@ def test_get_features_memories():
     expected = json.load(f)
     assert actual == expected
 
+def test_get_features_memories():
+    s = Spotify()
+    actual = s.get_features("Memories (feat. Kid Cudi) [2021 Remix] (2021 Remix)", "David Guetta")
+    f = open('tests/expected_responses/expected_unknown.json')
+    expected = json.load(f)
+    assert actual == expected
