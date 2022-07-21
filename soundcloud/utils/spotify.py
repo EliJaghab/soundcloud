@@ -38,6 +38,12 @@ class Spotify():
 
         def _get_track_id():
 
+            def _has_hyphen():
+                if "-" in sc_track:
+                    return True
+                return False
+
+
             def _search_track(sc_track = sc_track, sc_artist = sc_artist):
                 try:
                     track_id_results = self.client.search(q='artist:' + sc_artist + ' track:' + sc_track, type='track')
@@ -47,7 +53,7 @@ class Spotify():
                     return None
 
             def _get_track_id_basic():
-                return _search_track()
+                return _search_track(sc_track, sc_artist)
             
             def _get_track_id_advanced():
                 blank_artist = ""
@@ -66,19 +72,32 @@ class Spotify():
                     if results['tracks']['items']:
                         return True
                 return False
-
-            track_id_results = _get_track_id_basic()
-            if not _is_valid_response(track_id_results):
-                track_id_results = _get_track_id_advanced()
-            if not _is_valid_response(track_id_results):
-                track_id_results = _get_track_id_split_on_hyphen()
-            if not _is_valid_response(track_id_results):
-                return None, None, None
-            first_result = track_id_results['tracks']['items'][0]
-            sp_track = first_result['name']
-            sp_artist = first_result['artists'][0]['name']
-            sp_track_id = first_result['external_urls']['spotify'][31:]
-            return sp_track, sp_artist, sp_track_id
+            
+            def _perform_search():
+                track_id_results = None
+                if _has_hyphen():
+                    track_id_results = _get_track_id_split_on_hyphen()
+                if not _is_valid_response(track_id_results):
+                    track_id_results = _get_track_id_basic()
+                if not _is_valid_response(track_id_results): 
+                    track_id_results = _get_track_id_advanced()
+                if not track_id_results:
+                    track_id_results = None, None, None
+                return track_id_results
+            
+            def _is_search_valid(track_id_results):
+                if track_id_results:
+                    return True
+                return False
+            
+            track_id_results = _perform_search()
+            if _is_valid_response(track_id_results):
+                first_result = track_id_results['tracks']['items'][0]
+                sp_track = first_result['name']
+                sp_artist = first_result['artists'][0]['name']
+                sp_track_id = first_result['external_urls']['spotify'][31:]
+                return sp_track, sp_artist, sp_track_id
+            return track_id_results
 
         def _get_features(sp_track: str, sp_artist: str, sp_track_id: str):
             sp_track, sp_artist, sp_track_id = _get_track_id()

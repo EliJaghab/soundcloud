@@ -41,9 +41,9 @@ def test_get_features_memories():
     expected = json.load(f)
     assert actual == expected
 
-def test_get_features_memories():
+def test_get_features_split_example():
     s = Spotify()
-    actual = s.get_features("Memories (feat. Kid Cudi) [2021 Remix] (2021 Remix)", "David Guetta")
-    f = open('tests/expected_responses/expected_unknown.json')
+    actual = s.get_features("Drake - A Keeper", "octobersveryown")
+    f = open('tests/expected_responses/expected_keeper.json')
     expected = json.load(f)
     assert actual == expected
