@@ -1,5 +1,5 @@
 import spotipy
-import json
+import re
 from spotipy.oauth2 import SpotifyClientCredentials
 from spotipy.exceptions import SpotifyException
 from urllib.error import HTTPError
@@ -34,77 +34,89 @@ class Spotify():
             "artist_name": None
         }
     
-    def get_features(self, sc_track: str, sc_artist = ""):
+    def get_track_id(self, sc_track: str, sc_artist: str):
 
-        def _get_track_id():
+        def _has_hyphen():
+            if "-" in sc_track:
+                return True
+            return False
+        
+        def _has_feat():
+            if "feat" in sc_track:
+                return True
+            return False
 
-            def _has_hyphen():
-                if "-" in sc_track:
-                    return True
-                return False
-
-
-            def _search_track(sc_track = sc_track, sc_artist = sc_artist):
-                try:
-                    track_id_results = self.client.search(q='artist:' + sc_artist + ' track:' + sc_track, type='track')
-                    return track_id_results
-                except (SpotifyException, HTTPError) as error:
-                    print(error)
-                    return None
-
-            def _get_track_id_basic():
-                return _search_track(sc_track, sc_artist)
-            
-            def _get_track_id_advanced():
-                blank_artist = ""
-                return _search_track(sc_artist = blank_artist)
-            
-            def _get_track_id_split_on_hyphen():
-                if "-" in sc_track:
-                    split_track = sc_track.rsplit("-", 1)
-                    sc_artist_split = split_track[0]
-                    sc_track_split = split_track[1]
-                    return _search_track(sc_track_split, sc_artist_split)
+        def _search_track(sc_track = sc_track, sc_artist = sc_artist):
+            try:
+                track_id_results = self.client.search(q='artist:' + sc_artist + ' track:' + sc_track, type='track')
+                return track_id_results
+            except (SpotifyException, HTTPError) as error:
+                print(error)
                 return None
 
-            def _is_valid_response(results):
-                if results:
-                    if results['tracks']['items']:
-                        return True
-                return False
-            
-            def _perform_search():
-                track_id_results = None
+        def _get_track_id_basic():
+            return _search_track(sc_track, sc_artist)
+        
+        def _get_track_id_advanced():
+            blank_artist = ""
+            return _search_track(sc_artist = blank_artist)
+        
+        def _get_track_id_split_on_hyphen():
+            split_track = sc_track.rsplit("-", 1)
+            sc_artist_split = split_track[0]
+            sc_track_split = split_track[1]
+            return _search_track(sc_track_split, sc_artist_split)
+        
+        def get_track_id_move_feature_to_artist():
+            feature = re.findall('\(.*?\)', sc_track)[0]
+            new_track = sc_track.replace(feature, "").strip()
+            feature_artist = feature.split(" ", 1)[1][:-1]
+            new_artist = f"{sc_artist} {feature_artist}"
+            return _search_track(new_track, new_artist)
+
+        def _is_valid_response(results):
+            if results:
+                if results['tracks']['items']:
+                    return True
+            return False
+        
+        def _perform_search():
+            track_id_results = None
+            if _has_feat():
+                track_id_results = get_track_id_move_feature_to_artist()
+            if not _is_valid_response(track_id_results):   
                 if _has_hyphen():
                     track_id_results = _get_track_id_split_on_hyphen()
-                if not _is_valid_response(track_id_results):
-                    track_id_results = _get_track_id_basic()
-                if not _is_valid_response(track_id_results): 
-                    track_id_results = _get_track_id_advanced()
-                return track_id_results
+            if not _is_valid_response(track_id_results):
+                track_id_results = _get_track_id_basic()
+            if not _is_valid_response(track_id_results): 
+                track_id_results = _get_track_id_advanced()
+            return track_id_results
 
-            track_id_results = _perform_search()
-            if _is_valid_response(track_id_results):
-                first_result = track_id_results['tracks']['items'][0]
-                sp_track = first_result['name']
-                sp_artist = first_result['artists'][0]['name']
-                sp_track_id = first_result['external_urls']['spotify'][31:]
-                return sp_track, sp_artist, sp_track_id
-            return None, None, None
+        track_id_results = _perform_search()
+        if _is_valid_response(track_id_results):
+            first_result = track_id_results['tracks']['items'][0]
+            sp_track = first_result['name']
+            sp_artist = first_result['artists'][0]['name']
+            sp_track_id = first_result['external_urls']['spotify'][31:]
+            return sp_track_id
+        return None
 
-        def _get_features(sp_track: str, sp_artist: str, sp_track_id: str):
-            sp_track, sp_artist, sp_track_id = _get_track_id()
-            if sp_track_id:
-                features = self.client.audio_features(sp_track_id)[0]
-                if features: 
-                    features['track_name'] = sp_track
-                    features['artist_name'] = sp_artist
-                else:
-                    features = self.null_response
+           
+    def get_features(sp_track: str, sp_artist: str, sp_track_id: str):
+        sp_track, sp_artist, sp_track_id = _get_track_id()
+        if sp_track_id:
+            features = self.client.audio_features(sp_track_id)[0]
+            if features: 
+                features['track_name'] = sp_track
+                features['artist_name'] = sp_artist
             else:
                 features = self.null_response
-            return features
-        
+        else:
+            features = self.null_response
+        return features
+
+    def get_features(self, sc_track: str, sc_artist = ""):
         sp_track, sp_artist, sp_track_id = _get_track_id()
         return _get_features(sp_track, sp_artist, sp_track_id)
     
