@@ -99,24 +99,29 @@ class Spotify():
             sp_track = first_result['name']
             sp_artist = first_result['artists'][0]['name']
             sp_track_id = first_result['external_urls']['spotify'][31:]
-            return sp_track_id
-        return None
+            return [sp_track_id, sp_track, sp_artist]
+        return [None, None, None]
 
            
-    def get_features(sp_track: str, sp_artist: str, sp_track_id: str):
-        sp_track, sp_artist, sp_track_id = _get_track_id()
-        if sp_track_id:
-            features = self.client.audio_features(sp_track_id)[0]
-            if features: 
-                features['track_name'] = sp_track
-                features['artist_name'] = sp_artist
-            else:
-                features = self.null_response
+    def get_features_from_track_id(self, sp_track_id: str):
+        features = None
+        features = self.client.audio_features(sp_track_id)[0]
+        if features[0]:
+            features['track_name'] = sp_track
+            features['artist_name'] = sp_artist
         else:
             features = self.null_response
         return features
 
-    def get_features(self, sc_track: str, sc_artist = ""):
-        sp_track, sp_artist, sp_track_id = _get_track_id()
-        return _get_features(sp_track, sp_artist, sp_track_id)
+    def get_features(self, sc_track: str, sc_artist: str):
+        track_id_data = self.get_track_id(sc_track, sc_artist)
+        if track_id_data[0]:
+            track_id = track_id_data[0]
+            features = self.get_features_from_track_id(track_id)
+            features['track_id'] = track_id
+            features['sp_track_name'] = track_id_data[1]
+            features['sp_artist_name'] = track_id_data[2]
+        else:
+            features = self.null_response
+        return features
     
