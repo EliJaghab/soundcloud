@@ -67,8 +67,11 @@ class Spotify():
             sc_track_split = split_track[1]
             return _search_track(sc_track_split, sc_artist_split)
         
+        def _extract_feature():
+            return re.findall('\(.*?\)', sc_track)[0]
+        
         def get_track_id_move_feature_to_artist():
-            feature = re.findall('\(.*?\)', sc_track)[0]
+            feature = _extract_feature()
             new_track = sc_track.replace(feature, "").strip()
             feature_artist = feature.split(" ", 1)[1][:-1]
             new_artist = f"{sc_artist} {feature_artist}"
